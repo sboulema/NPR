@@ -1,0 +1,134 @@
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>	
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jinq/1.6.0/jinqjs.min.js"></script>	
+	
+	<!-- <script src="servicehuis.js"></script> -->
+	<!-- <script src="D:\Repos\ServiceHuis\ServiceHuis\dist\servicehuis.js"></script> -->
+	<script src="https://cdn.rawgit.com/sboulema/ServiceHuis/79007451202c81b774c4868574c792c6987d4ab1/ServiceHuis/dist/serviceHuis.min.js"></script>
+	
+	<script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" />
+	
+	<link rel="shortcut icon" href="https://nationaalparkeerregister.nl/favicon.ico" type="image/x-icon"/>
+	<title>NPR tarief info</title>
+</head>
+<body>
+	<center><img src="https://1.bp.blogspot.com/-CI0ixw3huxc/UJJrcgrbqxI/AAAAAAAAI0Y/YbuxzWg71YY/s1600/NPR+logo+100jpg.jpg" /></center>
+
+	<center><a href="index.html">Home</a> - <a href="info.html">Raw</a> - <a href="tariff.html">Tariff</a></center>
+	
+	Zonecode:<br/>
+	<input id="zoneCode" type="text">
+	
+	<table id="tariffTable" class="display">
+		<thead><tr><th>Day</th><th>Times</th><th>Costs</th><th>Max Duration</th><th>Description</th></tr></thead>
+	</table>
+	
+	<script>
+		var dataTable;
+		var verkooppunten = [];
+	
+		$(document).ready(function() {			
+			ServiceHuis.DataSets.loadVerkooppunten(function (data) { verkooppunten = data; });
+			
+			jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+				"weekdays-sort-pre": function (a) {
+					var days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+					return parseInt(days.indexOf(a))   //return number
+				},
+				"weekdays-sort-desc": function (a, b) {
+					return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+				},
+				"weekdays-sort-asc": function (a, b) {       //implement asc
+					return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+				}
+			});
+					
+			dataTable = $('#tariffTable').DataTable({ columnDefs: [ { targets: [0], type: 'weekdays-sort'} ]});
+		});
+	
+		$("#zoneCode").change(function() {
+			dataTable.clear().draw();
+		
+			var zoneCode = $(this).val().trim();
+			var areaId = ServiceHuis.Utils.getAreaIdByZoneCode(verkooppunten, zoneCode)
+			getTariffInfo(areaId);
+		});
+		
+		function getTariffInfo(areaId) {
+			var uuid;
+				
+			$.ajax("https://opendata.rdw.nl/resource/svfa-juwh.json?areaid=" + areaId[0]).done(function(data) {
+				uuid = data[0].uuid;
+				
+				$.ajax("http://cors.sboulema.nl/" + "http://npropendata.rdw.nl/parkingdata/v2/static/" + uuid).done(function(data) {							
+					$.each(data.parkingFacilityInformation.tariffs, function(index, tariff) {
+						var max = getMaxParkingDuration(data.parkingFacilityInformation.parkingRestrictions, tariff.validityDays[0]);				
+
+						dataTable.row.add( [ 
+							tariff.validityDays[0],
+							formatTime(tariff.validityFromTime.h) + ":" + formatTime(tariff.validityFromTime.m) + " - " + formatTime(tariff.validityUntilTime.h) + ":" + formatTime(tariff.validityUntilTime.m),
+							parseCosts(tariff),
+							max,
+							tariff.tariffDescription
+						] );						
+					});
+					
+					dataTable.columns.adjust().draw();
+					dataTable.column(0).data().sort();
+				});
+			});
+		}
+
+		function getMaxParkingDuration(parkingRestrictions, day) {
+			var maximumDuration = new jinqJs()
+							.from(parkingRestrictions)
+							.where(function(row) { return (row.validityDays[0] === day && row.validityEndOfPeriod < Date.now()); })
+							.select(function(row) { return row.maximumDuration; })[0];
+							
+			if (typeof maximumDuration === 'undefined') {
+				return "";
+			}
+			return maximumDuration;
+		}
+
+		function parseCosts(tariff) {
+			var costs = "";
+			$.each(tariff.intervalRates, function(index, interval) {
+				costs += parseInterval(interval);				
+			});	
+			return costs;			
+		}
+
+		function formatTime(min) {
+			if (min < 10) {
+				return "0" + min;
+			}
+			return min;
+		}
+
+		function parseInterval(interval) {
+			if (interval.validityEndOfPeriod !== null && interval.validityEndOfPeriod < Date.now()) {
+				return "";
+			}
+
+			var text = "";
+			
+			if (interval.durationUntil !== null && interval.durationUntil > 0) {
+				text += " " + interval.durationFrom + " - " + interval.durationUntil + ": ";
+			}
+			
+			text += interval.charge + "&euro; / ";
+			
+			if (interval.chargePeriod !== null && interval.chargePeriod > 1) {
+				text += interval.chargePeriod + " ";
+			}
+			
+			text += interval.durationType + "<br/>";
+			
+			return text;
+		}
+	</script>
+</body>
+</html>
