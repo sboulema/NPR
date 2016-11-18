@@ -21,14 +21,14 @@
 	<link rel="shortcut icon" href="https://nationaalparkeerregister.nl/favicon.ico" type="image/x-icon"/>
 </head>
 <body>
-	<center><img src="https://1.bp.blogspot.com/-CI0ixw3huxc/UJJrcgrbqxI/AAAAAAAAI0Y/YbuxzWg71YY/s1600/NPR+logo+100jpg.jpg" /></center>
+	<center><img src="https://www.cm.nl/images/clients/parkmobile.png" /></center>
 
 	<center><a href="index.html">Home</a> - <a href="info.html">Raw</a> - <a href="tariff.html">Tariff</a></center>
 	
 	<select id="selectArea"></select>
 	
 	<table id="tariffTable" class="display">
-		<thead><tr><th>City</th><th>Tariff</th><th>CultureInfoId</th><th>ZoneCode</th><th>ZoneDescription</th><th>DayCode</th><th>SortOrder</th></tr></thead>
+		<thead><tr><th>City</th><th>Tariff</th><th>CultureInfoId</th><th>ZoneCode</th><th>ZoneGroup</th><th>ZoneDescription</th><th>DayCode</th><th>SortOrder</th></tr></thead>
 	</table>
 	
 	<script>
@@ -44,7 +44,10 @@
 				dom: 'lBfrtip',
 				processing: true,
 				buttons: [
-					'csv', 'excel'
+					{
+						extend: 'csvHtml5',
+						title: 'export_ZoneTariffInfo'
+					},
 				]
 			} );
 		});
@@ -87,6 +90,7 @@
 						parsePeriod(period) + "; " + row.info,
 						row.cultureInfoId,
 						row.zoneCode,
+						row.zoneGroup,
 						row.zoneDescription,
 						row.dayCode,
 						key + 1
@@ -168,6 +172,7 @@
 									info: info,
 									cultureInfoId: 3,
 									zoneCode: zoneCode,
+									zoneGroup: gebied.areaid,
 									zoneDescription: gebied.areadesc,
 									dayCode: "AL",
 									sortOrder: ""
