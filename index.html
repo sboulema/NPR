@@ -21,7 +21,17 @@
 	<link rel="shortcut icon" href="https://nationaalparkeerregister.nl/favicon.ico" type="image/x-icon"/>
 </head>
 <body>
+	<center><img src="https://www.cm.nl/images/clients/parkmobile.png" /></center>
 
+	<center><a href="index.html">Home</a> - <a href="info.html">Raw</a> - <a href="tariff.html">Tariff</a></center>
+	
+	<select id="selectArea"></select>
+	
+	<table id="tariffTable" class="display">
+		<thead><tr><th>City</th><th>Tariff</th><th>CultureInfoId</th><th>ZoneCode</th><th>ZoneGroup</th><th>ZoneDescription</th><th>DayCode</th><th>SortOrder</th></tr></thead>
+	</table>
+	
+	<script>
 		var table = [];
 		var verkooppunten = [];
 		var dataTable;
@@ -36,7 +46,8 @@
 				buttons: [
 					{
 						extend: 'csvHtml5',
-						title: 'export_ZoneTariffInfo'
+						title: 'export_ZoneTariffInfo',
+						fieldSeparator: ';'
 					},
 				]
 			} );
