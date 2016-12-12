@@ -75,8 +75,21 @@
 						] );						
 					});
 					
+					$.each(data.parkingFacilityInformation.parkingRestrictions, function(index, restriction) {
+						if (restriction.parkingProhibited && restriction.validityDays[0] !== "VRIJPARK") { 
+							dataTable.row.add( [ 
+								restriction.validityDays[0],
+								formatTime(restriction.validityFromTime.h) + ":" + formatTime(restriction.validityFromTime.m) + " - " + formatTime(restriction.validityUntilTime.h) + ":" + formatTime(restriction.validityUntilTime.m),
+								"",
+								"",
+								"Verboden te parkeren"
+							] );
+						}								
+					});
+					
 					dataTable.columns.adjust().draw();
-					dataTable.column(0).data().sort();
+					dataTable.order( [ 0, 'asc' ], [ 1, 'asc' ] ).draw();
+					//dataTable.column(0).data().sort();
 				});
 			});
 		}
