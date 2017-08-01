@@ -4,8 +4,8 @@
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jinq/1.6.0/jinqjs.min.js"></script>
 	
 	<!-- <script src="servicehuis.js"></script> -->
-	<!-- <script src="D:\Repos\ServiceHuis\ServiceHuis\dist\servicehuis.js"></script> -->
-	<script src="https://cdn.rawgit.com/sboulema/ServiceHuis/00538add5cb21e2d773260b9cdf3849eec9bfbe8/ServiceHuis/dist/serviceHuis.min.js"></script>
+	<!-- <script src="D:\Repos\ServiceHuis\ServiceHuis\dist\servicehuis.js"></script>  -->
+	 <script src="https://cdn.rawgit.com/sboulema/ServiceHuis/master/ServiceHuis/dist/serviceHuis.min.js"></script> 
 	
 	<script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
 	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" />
@@ -21,12 +21,24 @@
 	<link rel="shortcut icon" href="https://nationaalparkeerregister.nl/favicon.ico" type="image/x-icon"/>
 </head>
 <body>
-	<center><img src="https://www.cm.nl/images/clients/parkmobile.png" /></center>
+	<center><img src="https://de.park-now.com/wp-content/uploads/sites/5/2016/09/ParkNow_RGB_Claim_POS.png" width="300px" /></center>
 
 	<center><a href="index.html">Home</a> - <a href="info.html">Raw</a> - <a href="tariff.html">Tariff</a></center>
 	
 	<select id="selectArea"></select>
 	
+	<select id="selectUsageId">
+		<option value="">Alles</option>
+		<option value="BETAALDP">Betaald parkeren</option>
+		<option value="GARAGEP">Garage parkeren</option>
+		<option value="PARKEREN">Parkeren</option>
+		<option value="VERGUNP">Vergunning parkeren</option>
+		<option value="TERREINP">Terrein parkeren</option>
+		<option value="CARPOOL">Carpool parkeren</option>
+		<option value="BEDRIJFP">Bedrijf</option>
+		<option value="BEWONERP">Bewoner</option>
+	</select>
+
 	<table id="tariffTable" class="display">
 		<thead><tr><th>City</th><th>Tariff</th><th>CultureInfoId</th><th>ZoneCode</th><th>ZoneGroup</th><th>ZoneDescription</th><th>DayCode</th><th>SortOrder</th></tr></thead>
 	</table>
@@ -72,7 +84,7 @@
 			
 			NProgress.start();
 			
-			ServiceHuis.DataSets.getInfoByAreaManagerId($(this).val(), processCallbackParam, $('#selectArea option:selected').text(), "BETAALDP", true);
+			ServiceHuis.DataSets.getInfoByAreaManagerId($(this).val(), processCallbackParam, $('#selectArea option:selected').text(), $('#selectUsageId option:selected').val(), true);
 		});
 		
 		function processCallbackParam(callbackParam) {			
@@ -133,6 +145,14 @@
 			
 			var zoneCodes = ServiceHuis.Utils.getZoneCodes(verkooppunten, callbackParam.areamanagerid, gebied.areaid);
 			
+			if (tijdvakken.length == 0) {
+				tijdvakken.push({maxdurationright: 1, starttimetimeframe: "000", endtimetimeframe: "000", daytimeframe: ""})
+			}
+
+			if (regelingen.length == 0) {
+				regelingen.push({maximumdaycharge: "0"})
+			}
+
 			$.each(tijdvakken, function (key, tijdvak) {
 				var tariefdeel = new jinqJs()
 					.from(callbackParam.tariefdelen)
