@@ -1,32 +1,37 @@
 <html>
+
 <head>
-	<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>	
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jinq/1.6.0/jinqjs.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 	
+	<!-- ServiceHuis -->
 	<!-- <script src="servicehuis.js"></script> -->
 	<!-- <script src="D:\Repos\ServiceHuis\ServiceHuis\dist\servicehuis.js"></script>  -->
-	 <script src="https://cdn.rawgit.com/sboulema/ServiceHuis/master/ServiceHuis/dist/serviceHuis.min.js"></script> 
-	
+	<!-- <script src="https://cdn.rawgit.com/sboulema/ServiceHuis/master/ServiceHuis/dist/serviceHuis.min.js"></script>  -->
+	<script src="https://rawgit.com/sboulema/ServiceHuis/master/ServiceHuis/dist/serviceHuis.min.js"></script>
+	<script type="text/javascript" src="https://unpkg.com/async"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jinq/1.6.0/jinqjs.min.js"></script>
+
+	<!-- DataTables -->
 	<script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
 	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" />
 	<script src="https://cdn.datatables.net/buttons/1.2.1/js/dataTables.buttons.min.js"></script>
 	<link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.2.1/css/buttons.dataTables.min.css" />
-	<script src="https://cdn.datatables.net/buttons/1.2.1/js/buttons.html5.min.js"></script>		
+	<script src="https://cdn.datatables.net/buttons/1.2.1/js/buttons.html5.min.js"></script>
 
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>	
+	<!-- NProgress Bar -->
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
-	
-	<script type="text/javascript" src="https://unpkg.com/async"></script>
-	
-	<link rel="shortcut icon" href="https://nationaalparkeerregister.nl/favicon.ico" type="image/x-icon"/>
+
+	<link rel="shortcut icon" href="https://nationaalparkeerregister.nl/favicon.ico" type="image/x-icon" />
 </head>
+
 <body>
 	<center><img src="https://de.park-now.com/wp-content/uploads/sites/5/2016/09/ParkNow_RGB_Claim_POS.png" width="300px" /></center>
 
 	<center><a href="index.html">Home</a> - <a href="info.html">Raw</a> - <a href="tariff.html">Tariff</a></center>
-	
+
 	<select id="selectArea"></select>
-	
+
 	<select id="selectUsageId">
 		<option value="">Alles</option>
 		<option value="BETAALDP">Betaald parkeren</option>
@@ -40,19 +45,30 @@
 	</select>
 
 	<table id="tariffTable" class="display">
-		<thead><tr><th>City</th><th>Tariff</th><th>CultureInfoId</th><th>ZoneCode</th><th>ZoneGroup</th><th>ZoneDescription</th><th>DayCode</th><th>SortOrder</th></tr></thead>
+		<thead>
+			<tr>
+				<th>City</th>
+				<th>Tariff</th>
+				<th>CultureInfoId</th>
+				<th>ZoneCode</th>
+				<th>ZoneGroup</th>
+				<th>ZoneDescription</th>
+				<th>DayCode</th>
+				<th>SortOrder</th>
+			</tr>
+		</thead>
 	</table>
-	
+
 	<script>
 		var table = [];
 		var verkooppunten = [];
 		var dataTable;
-		
-		$(document).ready(function() {			
+
+		$(document).ready(function () {
 			ServiceHuis.DataSets.loadGebiedsbeheerders(addBeheerdersToSelect);
 			ServiceHuis.DataSets.loadVerkooppunten(saveVerkooppunten);
-			
-			dataTable = $('#tariffTable').DataTable( {
+
+			dataTable = $('#tariffTable').DataTable({
 				dom: 'lBfrtip',
 				processing: true,
 				buttons: [
@@ -62,43 +78,43 @@
 						fieldSeparator: ';'
 					},
 				]
-			} );
+			});
 		});
 
 		function saveVerkooppunten(data) {
 			verkooppunten = data;
 		}
-		
+
 		function addBeheerdersToSelect(data) {
-			$.each(data, function(key, item) {
+			$.each(data, function (key, item) {
 				$('#selectArea').append('<option value=\"' + item.areamanagerid + '\">' + item.areamanagerdesc + '</option>');
 			});
 		}
-	
-		$("#selectArea").change(function() {
+
+		$("#selectArea").change(function () {
 			table = [];
-			
-			dataTable.clear().draw();		
-			
+
+			dataTable.clear().draw();
+
 			$('.dataTables_processing', $('#tariffTable').closest('.dataTables_wrapper')).show();
-			
+
 			NProgress.start();
-			
+
 			ServiceHuis.DataSets.getInfoByAreaManagerId($(this).val(), processCallbackParam, $('#selectArea option:selected').text(), $('#selectUsageId option:selected').val(), true);
 		});
-		
-		function processCallbackParam(callbackParam) {			
-			async.each(callbackParam.gebieden, processGebied.bind(this, callbackParam), function(err){
-			  // if any of the saves produced an error, err would equal that error
+
+		function processCallbackParam(callbackParam) {
+			async.each(callbackParam.gebieden, processGebied.bind(this, callbackParam), function (err) {
+				// if any of the saves produced an error, err would equal that error
 			});
-						
+
 			table.sort(compareByZoneCode);
-			
+
 			$.each(table, function (key, row) {
 				row.periods.sort(compareByNumberOfDays);
-			
+
 				$.each(row.periods, function (key, period) {
-					dataTable.row.add( [ 
+					dataTable.row.add([
 						row.city,
 						parsePeriod(period) + "; " + row.info,
 						row.cultureInfoId,
@@ -107,89 +123,74 @@
 						row.zoneDescription,
 						row.dayCode,
 						key + 1
-					] );
+					]);
 				});
 			});
-			
+
 			dataTable.columns.adjust().draw();
-			
+
 			$('.dataTables_processing', $('#tariffTable').closest('.dataTables_wrapper')).hide();
-			
+
 			NProgress.done();
 		}
-		
+
 		function processGebied(callbackParam, gebied, callback) {
-			var gebiedRegelingen = new jinqJs()
-				.from(callbackParam.gebiedregelingen)
-				.where(function(row) { return row.areaid == gebied.areaid && row.areamanagerid == callbackParam.areamanagerid })
-				.select(function(row) { return row.regulationid; });
-			
-			var regelingen = new jinqJs()
-				.from(callbackParam.regelingen)
-				.where(function(row) { return row.areamanagerid == callbackParam.areamanagerid && $.inArray(row.regulationid, gebiedRegelingen) > -1; })
-				.select(function(row) { return row; });
-				
-			var tijdvakken = new jinqJs()
-				.from(callbackParam.tijdvakken)
-				.where(function(row) { return row.areamanagerid == callbackParam.areamanagerid && $.inArray(row.regulationid, gebiedRegelingen) > -1; })
-				.select(function(row) { return row; });
-				
-			var farecalculationcodes = new jinqJs()
-				.from(tijdvakken)
-				.select(function(row) { return row.farecalculationcode; });
-			
-			var tariefdelen = new jinqJs()
-				.from(callbackParam.tariefdelen)
-				.where(function(row) { return row.areamanagerid == callbackParam.areamanagerid && $.inArray(row.farecalculationcode, farecalculationcodes) > -1; })
-				.select(function(row) { return row; });
-			
+			var gebiedRegelingen = callbackParam.gebiedregelingen
+				.filter(row => row.areaid == gebied.areaid && row.areamanagerid == callbackParam.areamanagerid)
+				.map(row => row.regulationid);
+
+			var regelingen = callbackParam.regelingen
+				.filter(row => row.areamanagerid == callbackParam.areamanagerid && gebiedRegelingen.includes(row.regulationid));
+
+			var tijdvakken = callbackParam.tijdvakken
+				.filter(row => row.areamanagerid == callbackParam.areamanagerid && gebiedRegelingen.includes(row.regulationid));
+
+			var farecalculationcodes = tijdvakken.map(tijdvak => tijdvak.farecalculationcode);
+
+			var tariefdelen = callbackParam.tariefdelen
+				.filter(row => row.areamanagerid == callbackParam.areamanagerid && farecalculationcodes.includes(row.farecalculationcode));
+
 			var zoneCodes = ServiceHuis.Utils.getZoneCodes(verkooppunten, callbackParam.areamanagerid, gebied.areaid);
-			
+
 			if (tijdvakken.length == 0) {
-				tijdvakken.push({maxdurationright: 1, starttimetimeframe: "000", endtimetimeframe: "000", daytimeframe: ""})
+				tijdvakken.push({ maxdurationright: 1, starttimetimeframe: "000", endtimetimeframe: "000", daytimeframe: "" })
 			}
 
 			if (regelingen.length == 0) {
-				regelingen.push({maximumdaycharge: "0"})
+				regelingen.push({ maximumdaycharge: "0" })
 			}
 
 			$.each(tijdvakken, function (key, tijdvak) {
-				var tariefdeel = new jinqJs()
-					.from(callbackParam.tariefdelen)
-					.where(function(row) { return row.areamanagerid == callbackParam.areamanagerid && row.farecalculationcode === tijdvak.farecalculationcode; })
-					.select(function(row) { return row; });
-				
-				var info = parseMaxDuration(tijdvak.maxdurationright) + " " + parseAmountFarePart(tariefdeel[0]) + " " + parseMaximumDayCharge(regelingen[0].maximumdaycharge) + " " + 
+				var tariefdeel = callbackParam.tariefdelen
+					.filter(row => row.areamanagerid == callbackParam.areamanagerid && row.farecalculationcode === tijdvak.farecalculationcode);
+
+				var info = parseMaxDuration(tijdvak.maxdurationright) + " " + parseAmountFarePart(tariefdeel[0]) + " " + parseMaximumDayCharge(regelingen[0].maximumdaycharge) + " " +
 					parseStepSizeFarePart(tariefdeel[0]) + parseCosts(tariefdeel[0]);
-				var timeframe = ServiceHuis.Utils.formatTimeframe(tijdvak.starttimetimeframe) + "-" + ServiceHuis.Utils.formatTimeframe(tijdvak.endtimetimeframe);					
-				
-				$.each(zoneCodes, function (key, zoneCode) {					
+				var timeframe = ServiceHuis.Utils.formatTimeframe(tijdvak.starttimetimeframe) + "-" + ServiceHuis.Utils.formatTimeframe(tijdvak.endtimetimeframe);
+
+				$.each(zoneCodes, function (key, zoneCode) {
 					if (tijdvak.daytimeframe !== "FEESTDAG" && tijdvak.daytimeframe !== "EXTRA KOOPAVOND" && tijdvak.daytimeframe !== "GEEN KOOPAVOND") {
-						var tableRowIndex = new jinqJs()
-							.from(table)
-							.where(function(row) { return row.info === info && row.zoneCode === zoneCode; })
-							.select(function(row) { return table.indexOf(row); });	
-					
-						if (tableRowIndex.length !== 0 && tableRowIndex[0] > -1) {						
-							var periodIndex = new jinqJs()
-								.from(table[tableRowIndex[0]].periods)
-								.where(function(row) { 
-								return row.timeframe === timeframe; 
-								})
-								.select(function(row) { return table[tableRowIndex[0]].periods.indexOf(row); });
-						
+						var tableRowIndex = table
+							.filter(row => row.info === info && row.zoneCode === zoneCode)
+							.map(row => table.indexOf(row));
+
+						if (tableRowIndex.length !== 0 && tableRowIndex[0] > -1) {
+							var periodIndex = table[tableRowIndex[0]].periods
+								.filter(row => row.timeframe === timeframe)
+								.map(row => table[tableRowIndex[0]].periods.indexOf(row));
+
 							if (periodIndex.length !== 0 && periodIndex[0] > -1 && $.inArray(tijdvak.daytimeframe, table[tableRowIndex[0]].periods[periodIndex[0]].days) === -1) {
 								table[tableRowIndex[0]].periods[periodIndex[0]].days.push(tijdvak.daytimeframe);
 							} else if (periodIndex.length !== 0 && periodIndex[0] > -1 && $.inArray(tijdvak.daytimeframe, table[tableRowIndex[0]].periods[periodIndex[0]].days) >= 0) {
 								// duplicate
 							} else {
-								table[tableRowIndex[0]].periods.push( { days: [ tijdvak.daytimeframe ], timeframe: timeframe } );
-							}							
+								table[tableRowIndex[0]].periods.push({ days: [tijdvak.daytimeframe], timeframe: timeframe });
+							}
 						} else {
 							table.push(
 								{
 									city: callbackParam.city,
-									periods: [ { days: [ tijdvak.daytimeframe ], timeframe: timeframe } ],
+									periods: [{ days: [tijdvak.daytimeframe], timeframe: timeframe }],
 									info: info,
 									cultureInfoId: 3,
 									zoneCode: zoneCode,
@@ -203,101 +204,101 @@
 					}
 				});
 			});
-			
+
 			NProgress.inc(1 / callbackParam.gebieden.length);
 		}
-		
-		function compareByNumberOfDays(a,b) {
+
+		function compareByNumberOfDays(a, b) {
 			if (a.days.length > b.days.length)
 				return -1;
 			if (a.days.length < b.days.length)
 				return 1;
 			return 0;
 		}
-		
-		function compareByZoneCode(a,b) {
+
+		function compareByZoneCode(a, b) {
 			if (a.zoneCode < b.zoneCode)
 				return -1;
 			if (a.zoneCode > b.zoneCode)
 				return 1;
 			return 0;
 		}
-		
-		function compareByDay(a,b) {
-		  var days = ["MAANDAG","DINSDAG","WOENSDAG","DONDERDAG","VRIJDAG","ZATERDAG","ZONDAG"];
-		  if (days.indexOf(a) < days.indexOf(b))
-			return -1;
-		  if (days.indexOf(a) > days.indexOf(b))
-			return 1;
-		  return 0;
+
+		function compareByDay(a, b) {
+			var days = ["MAANDAG", "DINSDAG", "WOENSDAG", "DONDERDAG", "VRIJDAG", "ZATERDAG", "ZONDAG"];
+			if (days.indexOf(a) < days.indexOf(b))
+				return -1;
+			if (days.indexOf(a) > days.indexOf(b))
+				return 1;
+			return 0;
 		}
-		
+
 		function parseMaxDuration(dur) {
-			var maxdur = "Max parkeerduur: einde volgende dag;"; 
+			var maxdur = "Max parkeerduur: einde volgende dag;";
 			if (dur > 0) {
 				maxdur = "Max parkeerduur: " + dur + " minuten;";
 			}
 			return maxdur;
 		}
-		
+
 		function parseStepSizeFarePart(tariefdeel) {
 			if (typeof tariefdeel === 'undefined') {
 				return "";
 			}
-		
+
 			var step = "U rekent af per minuut.";
 			if (tariefdeel.stepsizefarepart > 1) {
 				step = "U rekent af per " + tariefdeel.stepsizefarepart + " minuten.";
 			}
 			return step;
 		}
-		
+
 		function parseAmountFarePart(tariefdeel) {
 			if (typeof tariefdeel === 'undefined') {
 				return "";
 			}
-		
-			return "&euro; " + (tariefdeel.amountfarepart * (60 / tariefdeel.stepsizefarepart)).toFixed(2) + " /uur;";		
+
+			return "&euro; " + (tariefdeel.amountfarepart * (60 / tariefdeel.stepsizefarepart)).toFixed(2) + " /uur;";
 		}
-		
+
 		function parsePeriod(period) {
 			period.days.sort(compareByDay);
-			
+
 			var dayString = "";
-			
+
 			$.each(period.days, function (key, day) {
 				if (dayString !== "") {
-					dayString += ", " 
+					dayString += ", "
 				}
-			
-				dayString += day.substr(0,1) + day.substr(1,1).toLowerCase();
+
+				dayString += day.substr(0, 1) + day.substr(1, 1).toLowerCase();
 			});
-			
-			return dayString + " " + period.timeframe; 
+
+			return dayString + " " + period.timeframe;
 		}
-		
+
 		function parsePeriods(periods) {
 			var periodString = "";
-		
+
 			$.each(periods, function (key, period) {
 				periodString += period.days + " " + period.timeframe;
 			});
-			
+
 			return periodString;
 		}
-		
+
 		function parseMaximumDayCharge(charge) {
 			if (charge > 0) {
 				return "max &euro; " + charge + "/dag."
 			}
 			return "";
 		}
-		
+
 		function parseCosts(tariefdeel) {
 			if (typeof tariefdeel === 'undefined') {
 				return "";
 			}
-		
+
 			if (tariefdeel.stepsizefarepart > 60) {
 				return "; Totaal: &euro; " + tariefdeel.amountfarepart;
 			}
@@ -305,4 +306,5 @@
 		}
 	</script>
 </body>
+
 </html>
