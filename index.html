@@ -190,7 +190,7 @@
 							table.push(
 								{
 									city: callbackParam.city,
-									periods: [{ days: [tijdvak.daytimeframe], timeframe: timeframe }],
+									periods: [{ days: [tijdvak.daytimeframe], timeframe: timeframe, minparkinginterruption: tijdvak.minparkinginterruption }],
 									info: info,
 									cultureInfoId: 3,
 									zoneCode: zoneCode,
@@ -274,7 +274,13 @@
 				dayString += day.substr(0, 1) + day.substr(1, 1).toLowerCase();
 			});
 
-			return dayString + " " + period.timeframe;
+			var result = dayString + " " + period.timeframe;
+
+			if (period.minparkinginterruption > 0) {
+				result += ". Parkeeronderbreking: " + period.minparkinginterruption + " minuten";
+			}
+
+			return result;
 		}
 
 		function parsePeriods(periods) {
