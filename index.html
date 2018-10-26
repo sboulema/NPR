@@ -1,6 +1,9 @@
 <html>
 
 <head>
+	<title>NPR ServiceHuis Tool</title>
+	<meta charset="utf-8"/>
+
 	<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 	
 	<!-- ServiceHuis -->
@@ -66,7 +69,9 @@
 
 		$(document).ready(function () {
 			ServiceHuis.DataSets.loadGebiedsbeheerders(addBeheerdersToSelect);
-			ServiceHuis.DataSets.loadVerkooppunten(saveVerkooppunten);
+			ServiceHuis.DataSets.loadVerkooppunten(saveVerkooppunten, 
+				"https://cors.sboulema.nl/https://nprverkooppunten.rdw.nl/Productie/verkooppunten.txt", 
+				"https://sboulema.nl/npr/verkooppunten.txt");
 
 			dataTable = $('#tariffTable').DataTable({
 				dom: 'lBfrtip',
@@ -82,7 +87,13 @@
 		});
 
 		function saveVerkooppunten(data) {
-			verkooppunten = data;
+			if (data instanceof Array) {
+				verkooppunten = data;
+			}
+			else 
+			{
+				alert("Error loading the NPR verkooppunten");
+			}
 		}
 
 		function addBeheerdersToSelect(data) {
